@@ -1,27 +1,102 @@
-function initImageUploads() {
-  document.querySelectorAll(".image-slot").forEach((slot) => {
-    const input = slot.querySelector('input[type="file"]');
-    const img = slot.querySelector("img");
+const DEFAULT_CIRCLE_COLOR = "#00e600";
 
-    slot.addEventListener("click", (event) => {
-      if (event.target === img && slot.classList.contains("has-image")) {
-        return;
-      }
-    });
+function getLayoutSlot(slotId) {
+  return document.querySelector(`.layout [data-slot="${slotId}"]`);
+}
 
-    input.addEventListener("change", () => {
+function getSlotWrapper(slotId) {
+  return document.querySelector(`[data-slot-wrapper="${slotId}"]`);
+}
+
+function setSlotImage(slotId, dataUrl, fileName) {
+  const slot = getLayoutSlot(slotId);
+  if (!slot) {
+    return;
+  }
+
+  const img = slot.querySelector("img");
+  img.src = dataUrl;
+  slot.classList.add("has-image");
+
+  const preview = document.querySelector(`[data-preview="${slotId}"]`);
+  if (preview) {
+    preview.textContent = fileName || "업로드됨";
+    preview.classList.add("is-uploaded");
+  }
+}
+
+function setCircleColor(slotId, color) {
+  const circle = getLayoutSlot(slotId);
+  if (circle) {
+    circle.style.backgroundColor = color;
+  }
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function initPanelUploads() {
+  document.querySelectorAll('.control-panel input[type="file"][data-slot]').forEach((input) => {
+    input.addEventListener("change", async () => {
       const file = input.files?.[0];
       if (!file) {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        img.src = reader.result;
-        slot.classList.add("has-image");
-      };
-      reader.readAsDataURL(file);
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        setSlotImage(input.dataset.slot, dataUrl, file.name);
+      } catch (error) {
+        console.error(error);
+        window.alert("사진 업로드에 실패했습니다.");
+      }
     });
+  });
+}
+
+function initColorPickers() {
+  document.querySelectorAll('.control-panel input[type="color"][data-slot]').forEach((input) => {
+    setCircleColor(input.dataset.slot, input.value);
+
+    input.addEventListener("input", () => {
+      setCircleColor(input.dataset.slot, input.value);
+    });
+  });
+
+  document.querySelectorAll(".layout .color-circle[data-slot]").forEach((circle) => {
+    if (!circle.style.backgroundColor) {
+      circle.style.backgroundColor = DEFAULT_CIRCLE_COLOR;
+    }
+  });
+}
+
+function updateHiddenSlots(group) {
+  const selected = group.querySelector(".check-option.is-selected");
+  const slotIds = new Set();
+
+  group.querySelectorAll(".check-option").forEach((option) => {
+    if (option.dataset.hides) {
+      slotIds.add(option.dataset.hides);
+    }
+    if (option.dataset.shows) {
+      slotIds.add(option.dataset.shows);
+    }
+  });
+
+  slotIds.forEach((slotId) => {
+    const wrapper = getSlotWrapper(slotId);
+    if (!wrapper) {
+      return;
+    }
+
+    const shouldHide = selected?.dataset.hides === slotId;
+    wrapper.classList.toggle("is-hidden", shouldHide);
   });
 }
 
@@ -38,6 +113,7 @@ function initCheckGroups() {
         });
 
         if (isAlreadySelected) {
+          updateHiddenSlots(group);
           return;
         }
 
@@ -45,6 +121,8 @@ function initCheckGroups() {
         options
           .filter((item) => item !== option)
           .forEach((item) => item.classList.add("is-unselected"));
+
+        updateHiddenSlots(group);
       });
     });
   });
@@ -99,7 +177,8 @@ function initExport() {
   document.getElementById("export-btn").addEventListener("click", exportAsImage);
 }
 
-initImageUploads();
+initPanelUploads();
+initColorPickers();
 initCheckGroups();
 initEditableFields();
 initExport();

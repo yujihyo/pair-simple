@@ -1,4 +1,39 @@
 const DEFAULT_CIRCLE_COLOR = "#00e600";
+const profileTemplate = document.getElementById("profile-template");
+const profilesContainer = document.getElementById("profiles-container");
+
+let profileCount = 2;
+
+function createProfile(index) {
+
+    const profile = profileTemplate.content
+        .firstElementChild
+        .cloneNode(true);
+
+    profile.dataset.profile = index;
+
+    profile.querySelector(".name").textContent = `이름${index}`;
+
+    profile.querySelector(".name")
+        .dataset.placeholder = `이름${index}`;
+
+    return profile;
+
+}
+
+function renderProfiles() {
+
+    profilesContainer.innerHTML = "";
+
+    for(let i=1;i<=profileCount;i++){
+
+        profilesContainer.appendChild(
+            createProfile(i)
+        );
+
+    }
+
+}
 
 function getLayoutSlot(slotId) {
   return document.querySelector(`.layout [data-slot="${slotId}"]`);
@@ -182,3 +217,4 @@ initColorPickers();
 initCheckGroups();
 initEditableFields();
 initExport();
+renderProfiles();

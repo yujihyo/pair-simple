@@ -8,6 +8,69 @@ function getSlotWrapper(slotId) {
   return document.querySelector(`[data-slot-wrapper="${slotId}"]`);
 }
 
+const imageStates = {};
+
+document.querySelectorAll(".image-slot").forEach(slot => {
+
+  imageStates[slot.dataset.slot] = {
+
+    x: 0,
+    y: 0,
+
+    scale: 1,
+
+    dragging: false,
+
+    startX: 0,
+    startY: 0
+
+  };
+
+});
+
+function applyImageTransform(slotId) {
+  const slot = document.querySelector(
+    `.image-slot[data-slot="${slotId}"]`
+  );
+  if (!slot) return;
+  const img = slot.querySelector("img");
+  const state = imageStates[slotId];
+  img.style.transform =
+    `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+}
+
+function initImageDragging() {
+  document.querySelectorAll(".image-slot img").forEach(img => {
+    const slot = img.closest(".image-slot");
+    const slotName = slot.dataset.slot;
+    img.addEventListener("mousedown", startDrag);
+    function startDrag(e) {
+      e.preventDefault();
+      const state = imageStates[slotName];
+      state.dragging = true;
+      state.startX = e.clientX - state.x;
+      state.startY = e.clientY - state.y;
+      img.classList.add("dragging");
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", stopDrag);
+    }
+    function drag(e) {
+      const state = imageStates[slotName];
+      if (!state.dragging) return;
+      state.x = e.clientX - state.startX;
+      state.y = e.clientY - state.startY;
+      applyImageTransform(slotName);
+    }
+    function stopDrag() {
+      const state = imageStates[slotName];
+      state.dragging = false;
+      img.classList.remove("dragging");
+      document.removeEventListener("mousemove", drag);
+      document.removeEventListener("mouseup", stopDrag);
+    }
+  });
+}
+
 function setSlotImage(slotId, dataUrl, fileName) {
   const slot = getLayoutSlot(slotId);
   if (!slot) {
@@ -16,6 +79,13 @@ function setSlotImage(slotId, dataUrl, fileName) {
 
   const img = slot.querySelector("img");
   img.src = dataUrl;
+  const state = imageStates[slotId];
+
+  state.x = 0;
+  state.y = 0;
+  state.scale = 1;
+
+  applyImageTransform(slotId);
   slot.classList.add("has-image");
 
   const preview = document.querySelector(`[data-preview="${slotId}"]`);
@@ -182,3 +252,4 @@ initColorPickers();
 initCheckGroups();
 initEditableFields();
 initExport();
+initImageDragging();

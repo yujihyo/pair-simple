@@ -2,27 +2,71 @@ const DEFAULT_CIRCLE_COLOR = "#00e600";
 
 const profileTemplate = document.getElementById("profile-template");
 const profilesContainer = document.getElementById("profiles-container");
+const referenceTemplate = document.getElementById("reference-template");
 
 let profileCount = 2;
 
 function createProfile(index) {
-    const profile = profileTemplate.content.firstElementChild.cloneNode(true);
+  const profile = profileTemplate.content.firstElementChild.cloneNode(true);
 
-    profile.dataset.profile = index;
+  profile.dataset.profile = index;
 
-    const name = profile.querySelector(".name");
-    name.textContent = `이름${index}`;
-    name.dataset.placeholder = `이름${index}`;
+  profile.querySelectorAll("[data-slot]").forEach((el) => {
+    el.dataset.slot = el.dataset.slot.replace("-a", `-${index}`);
+  });
 
-    return profile;
+  profile.querySelectorAll("[data-slot-wrapper]").forEach((el) => {
+    el.dataset.slotWrapper = el.dataset.slotWrapper.replace("-a", `-${index}`);
+  });
+
+  profile.querySelectorAll("[data-check-group]").forEach((el) => {
+    el.dataset.checkGroup = el.dataset.checkGroup.replace("-a", `-${index}`);
+  });
+
+  profile.querySelectorAll("[data-preview]").forEach((el) => {
+    el.dataset.preview = el.dataset.preview.replace("-a", `-${index}`);
+  });
+
+  profile.querySelectorAll("[data-hides]").forEach((el) => {
+    el.dataset.hides = el.dataset.hides.replace("-a", `-${index}`);
+  });
+
+  profile.querySelectorAll("[data-shows]").forEach((el) => {
+    el.dataset.shows = el.dataset.shows.replace("-a", `-${index}`);
+  });
+
+  const name = profile.querySelector(".name");
+  name.textContent = `이름${index}`;
+  name.dataset.placeholder = `이름${index}`;
+
+  return profile;
+}
+
+function createReference() {
+  return referenceTemplate.content.firstElementChild.cloneNode(true);
+}
+
+function getProfileSlots(index) {
+  return {
+    head: `head-${index}`,
+    outfit: `outfit-${index}`,
+    profile: `profile-${index}`,
+    colors: [
+      `color-${index}-1`,
+      `color-${index}-2`,
+      `color-${index}-3`,
+      `color-${index}-4`,
+    ],
+  };
 }
 
 function renderProfiles() {
-    profilesContainer.innerHTML = "";
+  profilesContainer.innerHTML = "";
 
-    for (let i = 1; i <= profileCount; i++) {
-        profilesContainer.appendChild(createProfile(i));
-    }
+  for (let i = 1; i <= profileCount; i++) {
+    profilesContainer.appendChild(createProfile(i));
+  }
+  profilesContainer.appendChild(createReference());
 }
 
 function getLayoutSlot(slotId) {
@@ -66,6 +110,105 @@ function readFileAsDataUrl(file) {
   });
 }
 
+function renderUploadPanel() {
+  const list = document.getElementById("upload-list");
+
+  list.innerHTML = "";
+
+  for (let i = 1; i <= profileCount; i++) {
+
+    const slot = getProfileSlots(i);
+
+    list.insertAdjacentHTML("beforeend", `
+            <li class="control-item">
+
+                <div class="control-label">
+                    프로필 ${i}
+                </div>
+
+                <label class="upload-btn">
+                    얼굴
+                    <input
+                        type="file"
+                        hidden
+                        data-slot="${slot.head}">
+                </label>
+
+                <div
+                    class="control-preview"
+                    data-preview="${slot.head}">
+                    선택되지 않음
+                </div>
+
+                <label class="upload-btn">
+                    의상
+                    <input
+                        type="file"
+                        hidden
+                        data-slot="${slot.outfit}">
+                </label>
+
+                <div
+                    class="control-preview"
+                    data-preview="${slot.outfit}">
+                    선택되지 않음
+                </div>
+
+            </li>
+        `);
+
+  }
+
+  list.insertAdjacentHTML("beforeend", `
+        <li class="control-item">
+
+            <div class="control-label">
+                참고 이미지
+            </div>
+
+            <label class="upload-btn">
+                업로드
+                <input
+                    type="file"
+                    hidden
+                    data-slot="reference">
+            </label>
+
+            <div
+                class="control-preview"
+                data-preview="reference">
+                선택되지 않음
+            </div>
+
+        </li>
+    `);
+}
+
+function updateProfileCounter() {
+    document.getElementById("profile-count").textContent =
+        `${profileCount}명`;
+}
+
+function initProfileButtons() {
+
+    document
+        .getElementById("add-profile")
+        .addEventListener("click", () => {
+            if (profileCount >= 4)
+                return;
+            profileCount++;
+            refreshUI();
+        });
+    document
+        .getElementById("remove-profile")
+        .addEventListener("click", () => {
+            if (profileCount <= 1)
+                return;
+            profileCount--;
+            refreshUI();
+        });
+}
+
 function initPanelUploads() {
   document.querySelectorAll('.control-panel input[type="file"][data-slot]').forEach((input) => {
     input.addEventListener("change", async () => {
@@ -101,6 +244,50 @@ function initColorPickers() {
   });
 }
 
+function renderColorPanel() {
+
+  const panel = document.getElementById("color-panel");
+
+  panel.innerHTML = "";
+
+  for (let i = 1; i <= profileCount; i++) {
+
+    const slot = getProfileSlots(i);
+
+    panel.insertAdjacentHTML(
+      "beforeend",
+      `
+            <div class="color-group">
+
+                <div class="color-group-label">
+                    프로필 ${i}
+                </div>
+
+                <div class="color-picker-row">
+
+                    ${slot.colors.map(color => `
+                        <label class="color-swatch">
+
+                            <input
+                                type="color"
+                                value="${DEFAULT_CIRCLE_COLOR}"
+                                data-slot="${color}">
+
+                            <span class="color-swatch-ring"></span>
+
+                        </label>
+                    `).join("")}
+
+                </div>
+
+            </div>
+            `
+    );
+
+  }
+
+}
+
 function updateHiddenSlots(group) {
   const selected = group.querySelector(".check-option.is-selected");
   const slotIds = new Set();
@@ -123,6 +310,13 @@ function updateHiddenSlots(group) {
     const shouldHide = selected?.dataset.hides === slotId;
     wrapper.classList.toggle("is-hidden", shouldHide);
   });
+}
+
+function updateProfileCounter() {
+  document.getElementById("profile-count").textContent = `${profileCount}명`;
+
+  document.getElementById("remove-profile").disabled = profileCount === 1;
+  document.getElementById("add-profile").disabled = profileCount === 4;
 }
 
 function initCheckGroups() {
@@ -202,10 +396,21 @@ function initExport() {
   document.getElementById("export-btn").addEventListener("click", exportAsImage);
 }
 
-renderProfiles();
+function renderControlPanel() {
+  renderUploadPanel();
+  renderColorPanel();
+}
 
-initPanelUploads();
-initColorPickers();
-initCheckGroups();
-initEditableFields();
+function refreshUI() {
+    renderProfiles();
+    renderControlPanel();
+    initPanelUploads();
+    initColorPickers();
+    initCheckGroups();
+    initEditableFields();
+    updateProfileCounter();
+}
+
+refreshUI();
 initExport();
+initProfileButtons();

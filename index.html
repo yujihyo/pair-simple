@@ -21,10 +21,25 @@
         </header>
 
         <section class="control-section">
+          <h3 class="control-section-title">
+            프로필 수
+          </h3>
+          <div class="profile-counter">
+            <button id="remove-profile" type="button">
+              −
+            </button>
+            <span id="profile-count">
+              2명
+            </span>
+            <button id="add-profile" type="button">
+              +
+            </button>
+          </div>
+        </section>
+
+        <section class="control-section">
           <h3 class="control-section-title">사진 업로드</h3>
-          <ul 
-            id="upload-list"
-            class="control-list">
+          <ul id="upload-list" class="control-list">
           </ul>
         </section>
 
@@ -44,45 +59,14 @@
     </aside>
 
     <div class="workspace">
-      <main id="capture-area" class="layout">
-
-        <div id="profiles-container" class="profiles-container"></div>
-
-        <section class="column reference-column">
-          <div class="check-group check-group--large" data-check-group="reference">
-            <p class="check-heading check-heading--large">체크</p>
-            <ul class="check-list check-list--large">
-              <li>
-                <button type="button" class="check-option" data-value="designated-composition" data-shows="reference">
-                  <span class="check-box" aria-hidden="true"></span>
-                  지정 구도로 부탁드립니다
-                </button>
-              </li>
-              <li>
-                <button type="button" class="check-option" data-value="reference-modify" data-shows="reference">
-                  <span class="check-box" aria-hidden="true"></span>
-                  참고하여 적당히 변형해주세요
-                </button>
-              </li>
-              <li>
-                <button type="button" class="check-option" data-value="omakase-composition" data-hides="reference">
-                  <span class="check-box" aria-hidden="true"></span>
-                  오마카세 부탁드립니다
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div class="slot-wrapper slot-wrapper--grow" data-slot-wrapper="reference">
-            <div class="image-slot image-slot--green" data-slot="reference">
-              <img alt="" />
-            </div>
-          </div>
-        </section>
-      </main>
+      <div class="layout-wrap">
+        <main id="capture-area" class="layout">
+          <div id="profiles-container" class="profiles-container"></div>
+        </main>
+      </div>
     </div>
   </div>
-  
+
   <template id="profile-template">
 
     <section class="column profile-column">
@@ -148,6 +132,40 @@
       </div>
     </section>
 
+  </template>
+
+  <template id="reference-template">
+    <section class="column reference-column">
+          <div class="check-group check-group--large" data-check-group="reference">
+            <p class="check-heading check-heading--large">체크</p>
+            <ul class="check-list check-list--large">
+              <li>
+                <button type="button" class="check-option" data-value="designated-composition" data-shows="reference">
+                  <span class="check-box" aria-hidden="true"></span>
+                  지정 구도로 부탁드립니다
+                </button>
+              </li>
+              <li>
+                <button type="button" class="check-option" data-value="reference-modify" data-shows="reference">
+                  <span class="check-box" aria-hidden="true"></span>
+                  참고하여 적당히 변형해주세요
+                </button>
+              </li>
+              <li>
+                <button type="button" class="check-option" data-value="omakase-composition" data-hides="reference">
+                  <span class="check-box" aria-hidden="true"></span>
+                  오마카세 부탁드립니다
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="slot-wrapper slot-wrapper--grow" data-slot-wrapper="reference">
+            <div class="image-slot image-slot--green" data-slot="reference">
+              <img alt="" />
+            </div>
+          </div>
+        </section>
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>

@@ -40,24 +40,29 @@ body {
   align-items: stretch;
 }
 
-.workspace {
-  padding: 24px;
-  overflow: auto;
+.workspace{
+  padding:24px;
+  overflow:auto;
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-  gap: var(--column-gap);
+.layout-wrap{
+    display:flex;
+    justify-content:center;
+    min-width:max-content;
+}
 
-  align-items: stretch;
+.layout{
+    display:inline-flex;
 
-  width: min(100%, 1180px);
-  margin: 0 auto;
-  padding: 28px;
+    gap:20px;
 
-  background: var(--sheet-bg);
-  box-shadow: 0 8px 32px rgba(0,0,0,.08);
+    padding:28px;
+
+    background:#fff;
+    box-shadow:0 8px 32px rgba(0,0,0,.08);
+
+    width:max-content;
+    margin:0 auto;
 }
 
 .column {
@@ -165,10 +170,10 @@ body {
   background: var(--gray-dark);
 }
 
-.image-slot--green {
-  width: 100%;
-  min-height: 520px;
-  background: var(--green-soft);
+.image-slot--green{
+    width:100%;
+    aspect-ratio:3/4;
+    background:var(--green-soft);
 }
 
 .slot-wrapper {
@@ -254,10 +259,10 @@ body {
   text-decoration: line-through;
 }
 
-.reference-column {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
+.reference-column{
+  flex:0 0 320px;
+  display:flex;
+  flex-direction:column;
 }
 
 .control-panel {
@@ -478,27 +483,46 @@ body {
   transform: none;
 }
 
-.profiles-container {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--column-gap);
-
-    align-items: start;
-    align-content: start;
-
-    min-width: 0;
-    min-height: 100%;
-}
-
-.profiles-container > .profile-column {
-    width: 100%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
+.profiles-container{
+  display:flex;
+  gap:20px;
+  flex-wrap:nowrap;
+  flex-shrink:0;
 }
 
 .reference-column {
     min-width: 0;
+}
+
+.profile-counter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-counter button {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.profile-counter span {
+    flex: 1;
+    text-align: center;
+    font-weight: 700;
+}
+
+.profile-counter button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.profile-column{
+  flex:0 0 320px;
+  display:flex;
+  flex-direction:column;
 }
 
 @media (max-width: 1100px) {
@@ -516,9 +540,10 @@ body {
   .control-panel-inner {
     min-height: auto;
   }
-
-  .layout {
-    grid-template-columns: 1fr;
+  
+  .layout{
+    flex-direction:column;
+    width:100%;
   }
 }
 

@@ -43,17 +43,14 @@ body {
 .workspace{
   padding:24px;
   overflow:auto;
-}
 
-.layout-wrap{
-    display:flex;
-    justify-content:center;
-    min-width:max-content;
+  display:flex;
+  justify-content:center;
 }
 
 .layout{
     display:inline-flex;
-
+    align-items:flex-start;
     gap:20px;
 
     padding:28px;
@@ -61,8 +58,8 @@ body {
     background:#fff;
     box-shadow:0 8px 32px rgba(0,0,0,.08);
 
+    margin:0;
     width:max-content;
-    margin:0 auto;
 }
 
 .column {

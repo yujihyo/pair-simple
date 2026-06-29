@@ -11,64 +11,150 @@ function getSlotWrapper(slotId) {
 const imageStates = {};
 
 document.querySelectorAll(".image-slot").forEach(slot => {
-
   imageStates[slot.dataset.slot] = {
-
     x: 0,
     y: 0,
-
     scale: 1,
-
+    minScale: 1,
+    maxScale: 8,
+    drawWidth: 0,
+    drawHeight: 0,
+    height: null,
     dragging: false,
-
-    startX: 0,
-    startY: 0
-
+    startMouseX: 0,
+    startMouseY: 0,
+    originX: 0,
+    originY: 0
   };
 
 });
 
-function applyImageTransform(slotId) {
+function fitImage(slotName) {
   const slot = document.querySelector(
-    `.image-slot[data-slot="${slotId}"]`
+    `.image-slot[data-slot="${slotName}"]`
+  );
+  const img = slot.querySelector("img");
+  if (!img.complete) return;
+  const state = imageStates[slotName];
+  const slotW = slot.clientWidth;
+  const slotH = slot.clientHeight;
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+  const scale = Math.max(
+    slotW / imgW,
+    slotH / imgH
+  );
+  state.minScale = scale;
+  state.scale = scale;
+  state.maxScale = scale * 8;
+  state.drawWidth = imgW;
+  state.drawHeight = imgH;
+  clampPosition(slot, state);
+  applyImageTransform(slotName);
+}
+
+function applyImageTransform(slotName) {
+  const slot = document.querySelector(
+    `.image-slot[data-slot="${slotName}"]`
   );
   if (!slot) return;
   const img = slot.querySelector("img");
-  const state = imageStates[slotId];
+  const state = imageStates[slotName];
+  const width = state.drawWidth * state.scale;
+  const height = state.drawHeight * state.scale;
+  img.style.width = width + "px";
+  img.style.height = height + "px";
   img.style.transform =
-    `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+    `translate(calc(-50% + ${state.x}px), calc(-50% + ${state.y}px))`;
 }
 
 function initImageDragging() {
-  document.querySelectorAll(".image-slot img").forEach(img => {
-    const slot = img.closest(".image-slot");
+  document.querySelectorAll(".image-slot").forEach(slot => {
     const slotName = slot.dataset.slot;
-    img.addEventListener("mousedown", startDrag);
+    slot.addEventListener("mousedown", startDrag);
+    slot.addEventListener("wheel", function (e) {
+      if (!slot.classList.contains("has-image")) return;
+      e.preventDefault();
+      zoomImage(
+        slotName,
+        e.deltaY,
+        e.clientX,
+        e.clientY
+      );
+    }, { passive: false });
     function startDrag(e) {
+      if (!slot.classList.contains("has-image")) return;
       e.preventDefault();
       const state = imageStates[slotName];
       state.dragging = true;
-      state.startX = e.clientX - state.x;
-      state.startY = e.clientY - state.y;
-      img.classList.add("dragging");
+      state.startMouseX = e.clientX;
+      state.startMouseY = e.clientY;
+      state.originX = state.x;
+      state.originY = state.y;
+      slot.classList.add("is-dragging");
       document.addEventListener("mousemove", drag);
       document.addEventListener("mouseup", stopDrag);
     }
     function drag(e) {
       const state = imageStates[slotName];
       if (!state.dragging) return;
-      state.x = e.clientX - state.startX;
-      state.y = e.clientY - state.startY;
+      const dx = e.clientX - state.startMouseX;
+      const dy = e.clientY - state.startMouseY;
+      state.x = state.originX + dx;
+      state.y = state.originY + dy;
+      clampPosition(slot, state);
       applyImageTransform(slotName);
     }
     function stopDrag() {
       const state = imageStates[slotName];
       state.dragging = false;
-      img.classList.remove("dragging");
+      slot.classList.remove("is-dragging");
       document.removeEventListener("mousemove", drag);
       document.removeEventListener("mouseup", stopDrag);
     }
   });
+}
+
+function clampPosition(slot, state) {
+  const limitX = Math.max(
+    0,
+    (state.drawWidth * state.scale - slot.clientWidth) / 2
+  );
+  const limitY = Math.max(
+    0,
+    (state.drawHeight * state.scale - slot.clientHeight) / 2
+  );
+  state.x = Math.max(
+    -limitX,
+    Math.min(limitX, state.x)
+  );
+  state.y = Math.max(
+    -limitY,
+    Math.min(limitY, state.y)
+  );
+}
+
+function zoomImage(slotName, delta, mouseX, mouseY) {
+  const slot = document.querySelector(
+    `.image-slot[data-slot="${slotName}"]`
+  );
+  const state = imageStates[slotName];
+  const oldScale = state.scale;
+  const zoomSpeed = 0.0015;
+  state.scale *= 1 - delta * zoomSpeed;
+  state.scale = Math.max(
+    state.minScale,
+    Math.min(state.maxScale, state.scale)
+  );
+  if (oldScale === state.scale) return;
+  const rect = slot.getBoundingClientRect();
+  const cx = mouseX - rect.left - slot.clientWidth / 2;
+  const cy = mouseY - rect.top - slot.clientHeight / 2;
+  const ratio = state.scale / oldScale;
+  state.x = cx - (cx - state.x) * ratio;
+  state.y = cy - (cy - state.y) * ratio;
+  clampPosition(slot, state);
+  applyImageTransform(slotName);
 }
 
 function setSlotImage(slotId, dataUrl, fileName) {
@@ -81,11 +167,15 @@ function setSlotImage(slotId, dataUrl, fileName) {
   img.src = dataUrl;
   const state = imageStates[slotId];
 
-  state.x = 0;
-  state.y = 0;
   state.scale = 1;
 
-  applyImageTransform(slotId);
+  state.x = 0;
+  state.y = 0;
+
+  img.onload = () => {
+    fitImage(slotId);
+  };
+
   slot.classList.add("has-image");
 
   const preview = document.querySelector(`[data-preview="${slotId}"]`);
@@ -93,6 +183,82 @@ function setSlotImage(slotId, dataUrl, fileName) {
     preview.textContent = fileName || "업로드됨";
     preview.classList.add("is-uploaded");
   }
+}
+
+function initVerticalResize() {
+  document
+    .querySelectorAll('[data-slot^="outfit-"]')
+    .forEach(slot => {
+      const handle = slot.querySelector(".resize-handle-y");
+      if (!handle) {
+        return;
+      }
+      handle.addEventListener("mousedown", startResize);
+      function startResize(e) {
+        e.stopPropagation();
+        const startY = e.clientY;
+        const startHeight = slot.offsetHeight;
+        function resize(ev) {
+          const h = Math.max(
+            220,
+            startHeight + (ev.clientY - startY)
+          );
+          slot.style.height = h + "px";
+          slot.style.minHeight = h + "px";
+          fitImage(slot.dataset.slot);
+        }
+        function stop() {
+          document.removeEventListener("mousemove", resize);
+          document.removeEventListener("mouseup", stop);
+        }
+        document.addEventListener("mousemove", resize);
+        document.addEventListener("mouseup", stop);
+      }
+    });
+}
+
+function initReferenceResize(){
+    const slot=document.querySelector('[data-slot="reference"]');
+    const handle=slot.querySelector(".resize-handle-xy");
+    handle.addEventListener("mousedown",start);
+    function start(e){
+        e.stopPropagation();
+        const startX=e.clientX;
+        const startY=e.clientY;
+        const startWidth=slot.offsetWidth;
+        const startHeight=slot.offsetHeight;
+        function resize(ev){
+            const w=Math.max(
+                220,
+                startWidth+(ev.clientX-startX)
+            );
+            const h=Math.max(
+                300,
+                startHeight+(ev.clientY-startY)
+            );
+            slot.style.width=w+"px";
+            slot.style.height=h+"px";
+            fitImage("reference");
+        }
+        function stop(){
+            document.removeEventListener(
+                "mousemove",
+                resize
+            );
+            document.removeEventListener(
+                "mouseup",
+                stop
+            );
+        }
+        document.addEventListener(
+            "mousemove",
+            resize
+        );
+        document.addEventListener(
+            "mouseup",
+            stop
+        );
+    }
 }
 
 function setCircleColor(slotId, color) {
@@ -251,5 +417,7 @@ initPanelUploads();
 initColorPickers();
 initCheckGroups();
 initEditableFields();
-initExport();
 initImageDragging();
+initVerticalResize();
+initReferenceResize();
+initExport();

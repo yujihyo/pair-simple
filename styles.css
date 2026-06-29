@@ -256,25 +256,38 @@ body {
   box-sizing: border-box;
 }
 
-.image-slot {
-  position: relative;
-  overflow: hidden;
-}
+.image-slot{
+    position:relative;
+    overflow:hidden;
 
-.image-slot img {
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    transform-origin:center center;
-    user-select:none;
-    -webkit-user-drag:none;
+    border:1px solid transparent;
+    transition:border-color .15s ease;
+
     cursor:grab;
 }
 
-.image-slot img.dragging{
-  cursor:grabbing;
+.image-slot:hover{
+    border-color:#bdbdbd;
+}
+
+.image-slot.is-dragging{
+    border-color:#444;
+    cursor:grabbing;
+}
+
+.image-slot img{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:auto;
+    height:auto;
+    max-width:none;
+    max-height:none;
+    user-select:none;
+    -webkit-user-drag:none;
+    pointer-events:none;
+    transform-origin:center center;
+    will-change:transform;
 }
 
 .image-slot.has-image img {
@@ -287,9 +300,10 @@ body {
 }
 
 .image-slot--dark {
-  width: 100%;
-  min-height: var(--outfit-min-height);
-  background: var(--gray-dark);
+  width:100%;
+  height:460px;
+  min-height:220px;
+  background:var(--gray-dark);
 }
 
 .image-slot--green {
@@ -313,7 +327,7 @@ body {
 }
 
 .slot-wrapper--grow .image-slot {
-  flex: 1;
+  flex: none;
 }
 
 .check-heading {
@@ -605,6 +619,67 @@ body {
   opacity: 0.55;
   cursor: wait;
   transform: none;
+}
+
+.resize-handle-y{
+    position:absolute;
+    left:50%;
+    bottom:6px;
+
+    transform:translateX(-50%);
+
+    width:44px;
+    height:8px;
+
+    border-radius:999px;
+
+    background:rgba(0,0,0,.18);
+
+    cursor:ns-resize;
+
+    opacity:0;
+
+    transition:.15s;
+
+    z-index:20;
+}
+
+.image-slot:hover>.resize-handle-y{
+    opacity:1;
+}
+
+.resize-handle-y:hover{
+    background:#444;
+}
+
+.resize-handle-xy{
+    position:absolute;
+
+    right:6px;
+    bottom:6px;
+
+    width:16px;
+    height:16px;
+
+    border-radius:4px;
+
+    background:rgba(0,0,0,.2);
+
+    cursor:nwse-resize;
+
+    opacity:0;
+
+    transition:.15s;
+
+    z-index:20;
+}
+
+.image-slot:hover>.resize-handle-xy{
+    opacity:1;
+}
+
+.resize-handle-xy:hover{
+    background:#444;
 }
 
 @media (max-width: 1100px) {

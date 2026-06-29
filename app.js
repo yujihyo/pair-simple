@@ -217,48 +217,59 @@ function initVerticalResize() {
     });
 }
 
-function initReferenceResize(){
-    const slot=document.querySelector('[data-slot="reference"]');
-    const handle=slot.querySelector(".resize-handle-xy");
-    handle.addEventListener("mousedown",start);
-    function start(e){
-        e.stopPropagation();
-        const startX=e.clientX;
-        const startY=e.clientY;
-        const startWidth=slot.offsetWidth;
-        const startHeight=slot.offsetHeight;
-        function resize(ev){
-            const w=Math.max(
-                220,
-                startWidth+(ev.clientX-startX)
-            );
-            const h=Math.max(
-                300,
-                startHeight+(ev.clientY-startY)
-            );
-            slot.style.width=w+"px";
-            slot.style.height=h+"px";
-            fitImage("reference");
-        }
-        function stop(){
-            document.removeEventListener(
-                "mousemove",
-                resize
-            );
-            document.removeEventListener(
-                "mouseup",
-                stop
-            );
-        }
-        document.addEventListener(
-            "mousemove",
-            resize
-        );
-        document.addEventListener(
-            "mouseup",
-            stop
-        );
+function initReferenceResize() {
+  console.log("initReferenceResize");
+  const slot = document.querySelector('.image-slot[data-slot="reference"]');
+  console.log(slot);
+  const handle = slot.querySelector(".resize-handle-xy");
+  console.log(handle);
+  handle.addEventListener("mousedown", function(e) {
+    console.log("DOWN");
+    e.preventDefault();
+    e.stopImmediatePropagation();   // 중요
+    start(e);
+  });
+  function start(e) {
+    console.log("REFERENCE START");
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = slot.offsetWidth;
+    const startHeight = slot.offsetHeight;
+    function resize(ev) {
+      console.log("REFERENCE RESIZE");
+      const w = Math.max(
+        220,
+        startWidth + (ev.clientX - startX)
+      );
+      const h = Math.max(
+        300,
+        startHeight + (ev.clientY - startY)
+      );
+      slot.style.width = w + "px";
+      slot.style.height = h + "px";
+      slot.style.flex = "none";
+      fitImage("reference");
     }
+    function stop() {
+      document.removeEventListener(
+        "mousemove",
+        resize
+      );
+      document.removeEventListener(
+        "mouseup",
+        stop
+      );
+    }
+    document.addEventListener(
+      "mousemove",
+      resize
+    );
+    document.addEventListener(
+      "mouseup",
+      stop
+    );
+  }
 }
 
 function setCircleColor(slotId, color) {

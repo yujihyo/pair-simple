@@ -1,4 +1,4 @@
-const DEFAULT_CIRCLE_COLOR = "#00e600";
+const DEFAULT_CIRCLE_COLOR = "#a3a3a3";
 
 function getLayoutSlot(slotId) {
   return document.querySelector(`.layout [data-slot="${slotId}"]`);

@@ -40,26 +40,20 @@ body {
   align-items: stretch;
 }
 
-.workspace{
-  padding:24px;
-  overflow:auto;
-
-  display:flex;
-  justify-content:center;
+.workspace {
+  padding: 24px;
+  overflow: auto;
 }
 
-.layout{
-    display:inline-flex;
-    align-items:flex-start;
-    gap:20px;
-
-    padding:28px;
-
-    background:#fff;
-    box-shadow:0 8px 32px rgba(0,0,0,.08);
-
-    margin:0;
-    width:max-content;
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.35fr;
+  gap: var(--column-gap);
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: 28px;
+  background: var(--sheet-bg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .column {
@@ -167,10 +161,10 @@ body {
   background: var(--gray-dark);
 }
 
-.image-slot--green{
-    width:100%;
-    aspect-ratio:3/4;
-    background:var(--green-soft);
+.image-slot--green {
+  width: 100%;
+  min-height: 520px;
+  background: var(--green-soft);
 }
 
 .slot-wrapper {
@@ -256,10 +250,10 @@ body {
   text-decoration: line-through;
 }
 
-.reference-column{
-  flex:0 0 320px;
-  display:flex;
-  flex-direction:column;
+.reference-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .control-panel {
@@ -480,48 +474,6 @@ body {
   transform: none;
 }
 
-.profiles-container{
-  display:flex;
-  gap:20px;
-  flex-wrap:nowrap;
-  flex-shrink:0;
-}
-
-.reference-column {
-    min-width: 0;
-}
-
-.profile-counter {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-}
-
-.profile-counter button {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.profile-counter span {
-    flex: 1;
-    text-align: center;
-    font-weight: 700;
-}
-
-.profile-counter button:disabled {
-    opacity: .4;
-    cursor: not-allowed;
-}
-
-.profile-column{
-  flex:0 0 320px;
-  display:flex;
-  flex-direction:column;
-}
-
 @media (max-width: 1100px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -537,10 +489,9 @@ body {
   .control-panel-inner {
     min-height: auto;
   }
-  
-  .layout{
-    flex-direction:column;
-    width:100%;
+
+  .layout {
+    grid-template-columns: 1fr;
   }
 }
 

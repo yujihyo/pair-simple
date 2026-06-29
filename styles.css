@@ -136,7 +136,7 @@ body {
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.35fr;
+  grid-template-columns:1fr 1fr 1.5fr;
   gap: var(--column-gap);
   width: min(100%, 1180px);
   margin: 0 auto;
@@ -305,7 +305,7 @@ body {
 
 .image-slot--green {
   width: 100%;
-  min-height: 520px;
+  min-height: 320px;
   background: var(--green-soft);
 }
 

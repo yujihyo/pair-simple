@@ -130,8 +130,11 @@ body {
 }
 
 .workspace {
-  padding: 60px;
+  padding: 30px;
   overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .layout {
@@ -145,6 +148,8 @@ body {
   border: 1px solid #e7e7e7;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
   align-items:start;
+  transform: scale(0.8);
+  transform-origin: top center;
 }
 
 .column {

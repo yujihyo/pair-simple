@@ -29,31 +29,49 @@ document.querySelectorAll(".image-slot").forEach(slot => {
 
 });
 
-function fitImage(slotName) {
+function fitImage(slotName, keepTransform = false) {
+
+  console.log("fitImage", slotName);
+
   const slot = document.querySelector(
     `.image-slot[data-slot="${slotName}"]`
   );
+
   const img = slot.querySelector("img");
+
   if (!img.complete) return;
+
   const state = imageStates[slotName];
+
   const slotW = slot.clientWidth;
   const slotH = slot.clientHeight;
+
   const imgW = img.naturalWidth;
   const imgH = img.naturalHeight;
+
   const scale = Math.max(
     slotW / imgW,
     slotH / imgH
   );
+
   state.minScale = scale;
-  state.scale = scale;
   state.maxScale = scale * 8;
   state.drawWidth = imgW;
   state.drawHeight = imgH;
+
+  if (!keepTransform) {
+    state.scale = scale;
+    state.x = 0;
+    state.y = 0;
+  }
+
   clampPosition(slot, state);
   applyImageTransform(slotName);
+
 }
 
 function applyImageTransform(slotName) {
+  console.log("applyTransform", slotName);
   const slot = document.querySelector(
     `.image-slot[data-slot="${slotName}"]`
   );
@@ -66,7 +84,25 @@ function applyImageTransform(slotName) {
   img.style.height = height + "px";
   img.style.transform =
     `translate(calc(-50% + ${state.x}px), calc(-50% + ${state.y}px))`;
+  if (
+    window.StorageAPI &&
+    !StorageAPI.isRestoringTransform()
+  ) {
+
+    StorageAPI.saveTransform(
+      slotName,
+      {
+        x: state.x,
+        y: state.y,
+        scale: state.scale
+      }
+    );
+
+  }
 }
+
+window.applyImageTransform = applyImageTransform;
+window.imageStates = imageStates;
 
 function initImageDragging() {
   document.querySelectorAll(".image-slot").forEach(slot => {
@@ -157,24 +193,40 @@ function zoomImage(slotName, delta, mouseX, mouseY) {
   applyImageTransform(slotName);
 }
 
-function setSlotImage(slotId, dataUrl, fileName) {
+function setSlotImage(
+  slotId,
+  dataUrl,
+  fileName,
+  restoring = false
+) {
   const slot = getLayoutSlot(slotId);
   if (!slot) {
     return;
   }
-
   const img = slot.querySelector("img");
   img.src = dataUrl;
+  img.dataset.filename = fileName;
   const state = imageStates[slotId];
-
   state.scale = 1;
-
   state.x = 0;
   state.y = 0;
-
-  img.onload = () => {
+  img.onload = async () => {
     fitImage(slotId);
-  };
+    if (
+      restoring &&
+      window.StorageAPI
+    ) {
+      const saved =
+        await StorageAPI.loadTransform(slotId);
+      if (saved) {
+        const state = imageStates[slotId];
+        state.scale = saved.scale;
+        state.x = saved.x;
+        state.y = saved.y;
+        fitImage(slotId, true);
+      }
+    }
+  }
 
   slot.classList.add("has-image");
 
@@ -371,26 +423,22 @@ function initEditableFields() {
 async function exportAsImage() {
   const captureArea = document.getElementById("capture-area");
   const exportBtn = document.getElementById("export-btn");
-
   exportBtn.disabled = true;
   exportBtn.textContent = "저장 중...";
-
+  const oldTransform = captureArea.style.transform;
+  captureArea.style.transform = "none";
   try {
     const canvas = await html2canvas(captureArea, {
-      backgroundColor: "#ffffff",
+      backgroundColor: "#fff",
       scale: 2,
-      useCORS: true,
-      logging: false,
+      useCORS: true
     });
-
     const link = document.createElement("a");
     link.download = `pair-simple-${Date.now()}.png`;
-    link.href = canvas.toDataURL("image/png");
+    link.href = canvas.toDataURL();
     link.click();
-  } catch (error) {
-    console.error(error);
-    window.alert("이미지 저장에 실패했습니다. 다시 시도해 주세요.");
   } finally {
+    captureArea.style.transform = oldTransform;
     exportBtn.disabled = false;
     exportBtn.textContent = "이미지로 저장";
   }

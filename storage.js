@@ -170,13 +170,23 @@
 
         watchImages();
 
+        document
+            .querySelectorAll(".preview-delete")
+            .forEach(button => {
+                button.style.display = "none";
+            });
+
         await restoreImages();
 
         console.log("[IndexedDB] ready");
 
     });
 
-    async function saveImage(slot, src) {
+    async function saveImage(
+        slot,
+        src,
+        fileName
+    ) {
 
         const database = await openDB();
 
@@ -186,8 +196,8 @@
             const store = tx.objectStore(STORE_NAME);
 
             store.put({
-                src: src,
-                fileName: null
+                src,
+                fileName
             }, slot);
 
             tx.oncomplete = () => resolve();
@@ -331,8 +341,9 @@
 
                 setSlotImage(
                     slot,
-                    data,
-                    "복원된 이미지"
+                    data.src,
+                    data.fileName,
+                    true
                 );
 
             } else {
@@ -340,7 +351,7 @@
                 setSlotImage(
                     slot,
                     data.src,
-                    data.fileName || "복원된 이미지",
+                    data.fileName || data.fileName,
                     true
                 );
 
@@ -386,15 +397,16 @@
                         if (restoringImages)
                             continue;
 
-                        if (!img.src)
+                        if (
+                            !img.getAttribute("src")
+                        ) {
                             continue;
-
+                        }
+                        //9999
                         await saveImage(
                             slot,
-                            {
-                                src: img.src,
-                                fileName: img.dataset.filename || ""
-                            }
+                            img.src,
+                            img.dataset.filename || ""
                         );
 
                     }
@@ -409,5 +421,43 @@
             });
 
     }
+
+    document.addEventListener("click", async (e) => {
+
+        const button = e.target.closest(".preview-delete");
+        if (!button) return;
+
+        const slot = button.dataset.delete;
+
+        // IndexedDB 삭제
+        await deleteImage(slot);
+        await deleteTransform(slot);
+
+        // 화면 삭제
+        const img = document.querySelector(
+            `.image-slot[data-slot="${slot}"] img`
+        );
+
+        img.removeAttribute("src");
+        img.removeAttribute("data-filename");
+
+        img.style.width = "";
+        img.style.height = "";
+        img.style.transform = "";
+
+        const imageSlot = img.closest(".image-slot");
+        imageSlot.classList.remove("has-image");
+
+        // 파일명 제거
+        const preview = document.querySelector(
+            `[data-preview="${slot}"]`
+        );
+
+        preview.textContent = "";
+
+        // X 버튼 숨김
+        button.style.display = "none";
+
+    });
 
 })();

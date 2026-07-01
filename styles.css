@@ -511,6 +511,28 @@ body {
   background: var(--green);
 }
 
+.preview-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    margin-top:6px;
+}
+
+.preview-delete{
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:700;
+    color:#888;
+    padding:0;
+}
+
+.preview-delete:hover{
+    color:#d33;
+}
+
 .control-preview {
   font-size: 0.74rem;
   color: var(--text-god);

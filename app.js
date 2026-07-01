@@ -227,13 +227,23 @@ function setSlotImage(
       }
     }
   }
-
   slot.classList.add("has-image");
-
-  const preview = document.querySelector(`[data-preview="${slotId}"]`);
+  const preview = document.querySelector(
+    `[data-preview="${slotId}"]`
+  );
+  const deleteBtn = document.querySelector(
+    `[data-delete="${slotId}"]`
+  );
   if (preview) {
-    preview.textContent = fileName || "업로드됨";
-    preview.classList.add("is-uploaded");
+    preview.textContent = fileName || "";
+    preview.classList.toggle(
+      "is-uploaded",
+      !!fileName
+    );
+  }
+  if (deleteBtn) {
+    deleteBtn.style.display =
+      fileName ? "inline-block" : "none";
   }
 }
 
@@ -299,6 +309,32 @@ function initReferenceResize() {
     document.addEventListener("mouseup", stop);
   }
 }
+
+document
+  .querySelectorAll(".preview-delete")
+  .forEach(button => {
+    button.addEventListener("click", async () => {
+      const img = layout.querySelector("img");
+      img.onload = null;
+      img.removeAttribute("src");
+      img.removeAttribute("data-filename");
+      img.style.width = "";
+      img.style.height = "";
+      img.style.transform = "";
+      layout.classList.remove("has-image");
+      const preview = document.querySelector(
+        `[data-preview="${slot}"]`
+      );
+      preview.textContent = "";
+      preview.classList.remove("is-uploaded");
+      button.style.display = "none";
+      imageStates[slot].x = 0;
+      imageStates[slot].y = 0;
+      imageStates[slot].scale = 1;
+      await deleteImage(slot);
+      await deleteTransform(slot);
+    });
+  });
 
 function setCircleColor(slotId, color) {
   const circle = getLayoutSlot(slotId);
